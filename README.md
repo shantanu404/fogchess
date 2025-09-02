@@ -1,8 +1,3 @@
-FogChess
-========
-A simple implementation of Fog of War chess variant in C++
-
-How to play
 ## FogChess
 
 A simple, interactive Fog of War chess variant server in C++.
