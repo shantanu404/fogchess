@@ -21,6 +21,15 @@ namespace fogchess {
         UNKNOWN     = 1 << 7,
     };
 
+    struct castling_info_t {
+        uint8_t white_king_moved;
+        uint8_t white_kingside_rook_moved;
+        uint8_t white_queenside_rook_moved;
+        uint8_t black_king_moved;
+        uint8_t black_kingside_rook_moved;
+        uint8_t black_queenside_rook_moved;
+    };
+
     struct cell_t { int cell_id; };
 
     struct move_t {
@@ -31,6 +40,7 @@ namespace fogchess {
     struct real_board_t {
         std::array<piece_t, 64> board;
         move_t last_move;
+        castling_info_t info;
     };
 
     struct player_board_t { std::array<piece_t, 64> board; };

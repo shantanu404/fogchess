@@ -1,4 +1,5 @@
 
+
 #include <iostream>
 #include <string>
 #include <algorithm>
@@ -10,6 +11,8 @@
 #include "common.hpp"
 #include "serializer.hpp"
 #include "utils.hpp"
+#include "gamestate.hpp"
+
 
 using namespace fogchess;
 
@@ -47,23 +50,21 @@ int main() {
   if (client_fd2 < 0) { perror("accept 8002"); exit(EXIT_FAILURE); }
   std::cout << "Black connected!\n";
 
-  // Initialize board
+  // Initialize GameState
   std::string start_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-  real_board_t board = board_from_fen(start_fen);
-
-  bool is_white_turn = true;
+  GameState game(start_fen);
 
   std::cout << "Fog of War Chess (C++ prototype)\n";
   std::cout << "Rules: No check; capture the king to win. Promotions auto-queen. Castling/en passant TODO.\n";
 
   while (true) {
-    print_real_board(board, std::cout);
+    print_real_board(game.get_board(), std::cout);
 
-    bool is_player_white = is_white_turn;
+    bool is_player_white = game.is_white_turn();
     int client_fd = is_player_white ? client_fd1 : client_fd2;
 
     // Get player's board view
-    player_board_t player_board = board_for_player(board, is_player_white);
+    player_board_t player_board = is_player_white ? game.get_white_player() : game.get_black_player();
     std::string serialized = serialize_board(player_board);
 
     std::string prompt = (is_player_white ? "White" : "Black") + std::string(" to move\n") + serialized + "\nEnter move (e.g., e2e4) or 'q': ";
@@ -103,22 +104,37 @@ int main() {
     cell_t to_cell{static_cast<int>(to_rf.first * 8 + to_rf.second)};
     move_t move{from_cell, to_cell};
 
-    // TODO: Validate move legality using get_move and apply move
-    // For now, just apply the move
-    board.last_move = move;
-    board.board[to_cell.cell_id] = board.board[from_cell.cell_id];
-    board.board[from_cell.cell_id] = EMPTY;
+    // Validate move legality using GameState
+    if (!game.is_valid_move(move)) {
+      std::string msg = "Illegal move\n";
+      std::cout << msg;
+      send(client_fd, msg.c_str(), msg.size(), 0);
+      continue;
+    }
+
+    // Apply move
+    game.make_move(move);
 
     // After move, send updated board to both players
     for (int i = 0; i < 2; ++i) {
       bool is_player_white = (i == 0);
       int client_fd = is_player_white ? client_fd1 : client_fd2;
-      player_board_t player_board = board_for_player(board, is_player_white);
+      player_board_t player_board = is_player_white ? game.get_white_player() : game.get_black_player();
       std::string serialized = serialize_board(player_board);
       std::string prompt = (is_player_white ? "White" : "Black") + std::string(" to move\n") + serialized + "\nEnter move (e.g., e2e4) or 'q': ";
       send(client_fd, prompt.c_str(), prompt.size(), 0);
     }
-    is_white_turn = !is_white_turn;
+
+    // Check for winner
+    if (game.has_winner()) {
+      std::string msg = "Game over! Winner: ";
+      msg += (game.get_winner_raw() == 1 ? "White" : "Black");
+      msg += "\n";
+      std::cout << msg;
+      send(client_fd1, msg.c_str(), msg.size(), 0);
+      send(client_fd2, msg.c_str(), msg.size(), 0);
+      break;
+    }
   }
   return 0;
 }

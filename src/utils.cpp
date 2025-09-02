@@ -46,6 +46,7 @@ namespace fogchess
         real_board_t board;
         board.board.fill(EMPTY);
         board.last_move = {{-1}, {-1}};
+        board.info = { 0 };
 
         const std::map<char, uint8_t> fen_to_piece = {
             {'p', PAWN | BLACK}, {'P', PAWN | WHITE},
@@ -260,7 +261,38 @@ namespace fogchess
 
     std::vector<move_t> king_move(const real_board_t& board, cell_t location)
     {
-        return melee_move(board, location, {{1, 0}, {0, 1}, {-1, 0}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}});
+        auto moves = melee_move(board, location, {{1, 0}, {0, 1}, {-1, 0}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}});
+
+        auto king = get_piece_at_cell(board, location);
+        if ((king & WHITE) && board.info.white_king_moved == 0) {
+            if (board.info.white_kingside_rook_moved == 0) {
+                if (get_piece_at_cell(board, {5}) == EMPTY && get_piece_at_cell(board, {6}) == EMPTY && get_piece_at_cell(board, {7}) & (ROOK | WHITE)) {
+                    moves.push_back({location, {6}});
+                }
+            }
+
+            if (board.info.white_queenside_rook_moved == 0) {
+                if (get_piece_at_cell(board, {3}) == EMPTY && get_piece_at_cell(board, {2}) == EMPTY && (get_piece_at_cell(board, {0}) & (ROOK | WHITE))) {
+                    moves.push_back({location, {2}});
+                }
+            }
+        }
+
+        if ((king & BLACK) && board.info.black_king_moved == 0) {
+            if (board.info.black_kingside_rook_moved == 0) {
+                if (get_piece_at_cell(board, {61}) == EMPTY && get_piece_at_cell(board, {62}) == EMPTY && get_piece_at_cell(board, {63}) & (ROOK | BLACK)) {
+                    moves.push_back({location, {59}});
+                }
+            }
+
+            if (board.info.black_queenside_rook_moved == 0) {
+                if (get_piece_at_cell(board, {59}) == EMPTY && get_piece_at_cell(board, {58}) == EMPTY && (get_piece_at_cell(board, {56}) & (ROOK | BLACK))) {
+                    moves.push_back({location, {58}});
+                }
+            }
+        }
+
+        return moves;
     }
 
     std::vector<move_t> knight_move(const real_board_t& board, cell_t location)

@@ -43,11 +43,11 @@ Players connect using `netcat` (or any TCP client):
 Each player will see their own board and prompts. The server logs the full board after every move.
 
 ## Game Rules
-- **Win Condition:** Capture the opponent's king.
-- **Promotions:** Pawns auto-queen.
-- **Castling** Not implemented.
-- **En Passant** Should work?
-- **Fog:** Only squares visible to your pieces are shown.
+- **Win Condition:** Capture the opponent's king
+- **Promotions:** Pawns auto-queen
+- **Castling** Works :muscle:
+- **En Passant** Should work? :pray:
+- **Fog:** Only squares visible to your pieces are shown
 
 ## License
 This project is licensed under the MIT License. See `LICENCE` for details.
