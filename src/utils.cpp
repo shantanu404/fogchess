@@ -231,8 +231,11 @@ namespace fogchess
 
         // Captures
         for (int df : {-1, 1}) {
-            end.cell_id = start.cell_id + direction * 8 + df;
-            if (is_valid(get_rank_and_file_from_cell(end)) && get_piece_at_cell(board, end) != EMPTY) {
+            auto [rank, file] = get_rank_and_file_from_cell(start);
+            rank += direction;
+            file += df;
+            end.cell_id = rank * 8 + file;
+            if (is_valid({rank, file}) && get_piece_at_cell(board, end) != EMPTY) {
                 auto other_piece = get_piece_at_cell(board, end);
 
                 if ((other_piece & PIECE_COLOR_MASK) != (pawn & PIECE_COLOR_MASK))
