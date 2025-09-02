@@ -45,7 +45,8 @@ Each player will see their own board and prompts. The server logs the full board
 ## Game Rules
 - **Win Condition:** Capture the opponent's king.
 - **Promotions:** Pawns auto-queen.
-- **Castling/En Passant:** Not implemented.
+- **Castling** Not implemented.
+- **En Passant** Should work?
 - **Fog:** Only squares visible to your pieces are shown.
 
 ## License
